@@ -4,16 +4,27 @@ import json
 
 app = Flask(__name__)
 
+with open("config.json") as json_data_file:
+    config = json.load(json_data_file)
+
 client = Client(
     base_endpoint=config['appsearch']['base_endpoint'],
     api_key=config['appsearch']['api_key'],
     use_https=True)
 
-engine_name = config['appsearch']['engine_name']
+engine_name = config['appsearch']['api_key']
 
 @app.route("/")
 def home():
-    return render_template("home.html")
+    data = client.search(engine_name, "", {})
+    return render_template("home.html" , data=data)
+
+@app.route("/search", methods = ['POST'])
+def search():
+    if request.method == 'POST':
+      query = request.form['search']
+    data = client.search(engine_name, query, {})
+    return render_template("results.html" , data=data)
      
 @app.route("/index")
 def index():
