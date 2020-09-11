@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request     
 from elastic_app_search import Client
+from elasticapm.contrib.flask import ElasticAPM
+import logging
 import json
 
 app = Flask(__name__)
@@ -7,15 +9,21 @@ app = Flask(__name__)
 with open("config.json") as json_data_file:
     config = json.load(json_data_file)
 
+apm = ElasticAPM(app,logging=logging.ERROR,
+server_url=config['apm']['server_url'] ,
+ service_name=config['apm']['service_name'], 
+ secret_token=config['apm']['secret_token'])
+
 client = Client(
     base_endpoint=config['appsearch']['base_endpoint'],
     api_key=config['appsearch']['api_key'],
     use_https=True)
 
-engine_name = config['appsearch']['api_key']
+engine_name = config['appsearch']['engine_name']
 
 @app.route("/")
 def home():
+    app.logger.error('Test Error')
     data = client.search(engine_name, "", {})
     return render_template("home.html" , data=data)
 
